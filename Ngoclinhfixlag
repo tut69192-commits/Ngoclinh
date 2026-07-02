@@ -4,8 +4,8 @@ ScreenGui.Parent = game:GetService("CoreGui")
 ScreenGui.ResetOnSpawn = false
 
 local Main = Instance.new("Frame", ScreenGui)
-Main.Size = UDim2.new(0,250,0,170)
-Main.Position = UDim2.new(0.5,-125,0.5,-85)
+Main.Size = UDim2.new(0,250,0,250)
+Main.Position = UDim2.new(0.5,-125,0.5,-125)
 Main.BackgroundColor3 = Color3.fromRGB(30,30,30)
 Main.BorderSizePixel = 0
 Main.Active = true
@@ -23,7 +23,7 @@ Instance.new("UICorner", Dark).CornerRadius = UDim.new(0,15)
 local Title = Instance.new("TextLabel", Main)
 Title.Size = UDim2.new(1,0,0,30)
 Title.BackgroundTransparency = 1
-Title.Text = "Fix Lag"
+Title.Text = "NGOCLINH HUB"
 Title.TextScaled = true
 Title.Font = Enum.Font.GothamBold
 Title.TextColor3 = Color3.fromRGB(255,255,255)
@@ -31,7 +31,7 @@ Title.TextColor3 = Color3.fromRGB(255,255,255)
 local Fix = Instance.new("TextButton", Main)
 Fix.Size = UDim2.new(0.45,0,0,35)
 Fix.Position = UDim2.new(0.05,0,0.40,0)
-Fix.Text = "FIX LAG"
+Fix.Text = "NGOCLINH HUB"
 Fix.Font = Enum.Font.GothamBold
 Fix.TextScaled = true
 Fix.BackgroundColor3 = Color3.fromRGB(50,50,50)
@@ -41,12 +41,22 @@ Instance.new("UICorner", Fix)
 local DeleteNPC = Instance.new("TextButton", Main)
 DeleteNPC.Size = UDim2.new(0.45,0,0,35)
 DeleteNPC.Position = UDim2.new(0.5,0,0.40,0)
-DeleteNPC.Text = "DELETE NPC"
+DeleteNPC.Text = "xóa npc"
 DeleteNPC.Font = Enum.Font.GothamBold
 DeleteNPC.TextScaled = true
 DeleteNPC.BackgroundColor3 = Color3.fromRGB(50,50,50)
 DeleteNPC.TextColor3 = Color3.new(1,1,1)
 Instance.new("UICorner", DeleteNPC)
+
+local DeletePurple = Instance.new("TextButton", Main)
+DeletePurple.Size = UDim2.new(0.9,0,0,35)
+DeletePurple.Position = UDim2.new(0.05,0,0.75,0)
+DeletePurple.Text = "xóa tất cả hiệu ứng tím"
+DeletePurple.Font = Enum.Font.GothamBold
+DeletePurple.TextScaled = true
+DeletePurple.BackgroundColor3 = Color3.fromRGB(150,50,150)
+DeletePurple.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", DeletePurple)
 
 local Close = Instance.new("TextButton", Main)
 Close.Size = UDim2.new(0,25,0,25)
@@ -58,15 +68,22 @@ Close.BackgroundColor3 = Color3.fromRGB(220,60,60)
 Close.TextColor3 = Color3.new(1,1,1)
 Instance.new("UICorner", Close)
 
--- Nút đóng/mở menu
-local Toggle = Instance.new("TextButton", ScreenGui)
-Toggle.Size = UDim2.new(0,50,0,50)
-Toggle.Position = UDim2.new(0.5,-25,0.95,-25)
+-- Nút đóng/mở menu - Có thể di chuyển được
+local ToggleContainer = Instance.new("Frame", ScreenGui)
+ToggleContainer.Size = UDim2.new(0,50,0,50)
+ToggleContainer.Position = UDim2.new(0.5,-25,0.95,-25)
+ToggleContainer.BackgroundTransparency = 1
+ToggleContainer.Active = true
+ToggleContainer.Draggable = true
+ToggleContainer.Name = "ToggleContainer"
+
+local Toggle = Instance.new("TextButton", ToggleContainer)
+Toggle.Size = UDim2.new(1,0,1,0)
+Toggle.BackgroundColor3 = Color3.fromRGB(50,50,50)
+Toggle.TextColor3 = Color3.new(1,1,1)
 Toggle.Text = "☰"
 Toggle.Font = Enum.Font.GothamBold
 Toggle.TextScaled = true
-Toggle.BackgroundColor3 = Color3.fromRGB(50,50,50)
-Toggle.TextColor3 = Color3.new(1,1,1)
 Toggle.ZIndex = 10
 Toggle.BorderSizePixel = 0
 Toggle.Name = "ToggleButton"
@@ -108,6 +125,52 @@ local function RemoveAllNPC()
 	DeleteNPC.BackgroundColor3 = Color3.fromRGB(50,100,50)
 end
 
+-- Hàm kiểm tra màu tím
+local function IsPurpleColor(color)
+	local r, g, b = color.R, color.G, color.B
+	-- Kiểm tra nếu màu tím (R cao, B cao, G thấp)
+	return r > 0.5 and b > 0.5 and g < 0.5
+end
+
+-- Hàm xóa tất cả hiệu ứng màu tím
+local function RemoveAllPurpleEffects()
+	local removedCount = 0
+	
+	for _, v in ipairs(game:GetDescendants()) do
+		pcall(function()
+			if v:IsA("ParticleEmitter") then
+				if IsPurpleColor(v.Color.Keypoints[1].Value) then
+					v:Destroy()
+					removedCount = removedCount + 1
+				end
+			elseif v:IsA("Trail") then
+				if IsPurpleColor(v.Color.Keypoints[1].Value) then
+					v:Destroy()
+					removedCount = removedCount + 1
+				end
+			elseif v:IsA("Beam") then
+				if IsPurpleColor(v.Color.Keypoints[1].Value) then
+					v:Destroy()
+					removedCount = removedCount + 1
+				end
+			elseif v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Sparkles") then
+				if v.Color and IsPurpleColor(v.Color) then
+					v:Destroy()
+					removedCount = removedCount + 1
+				end
+			elseif v:IsA("BasePart") then
+				if v.Color and IsPurpleColor(v.Color) then
+					v:Destroy()
+					removedCount = removedCount + 1
+				end
+			end
+		end)
+	end
+	
+	DeletePurple.Text = "✓ ĐÃ XÓA"
+	DeletePurple.BackgroundColor3 = Color3.fromRGB(50,100,50)
+end
+
 Fix.MouseButton1Click:Connect(function()
     local Lighting = game:GetService("Lighting")
 
@@ -118,13 +181,22 @@ Fix.MouseButton1Click:Connect(function()
     end)
 
     for _,v in ipairs(game:GetDescendants()) do
-        if v:IsA("ParticleEmitter")
-        or v:IsA("Trail")
-        or v:IsA("Beam")
-        or v:IsA("Smoke")
-        or v:IsA("Fire")
-        or v:IsA("Sparkles") then
-            v.Enabled = false
+        if v:IsA("ParticleEmitter") then
+            v:Destroy()
+        elseif v:IsA("Trail") then
+            v:Destroy()
+        elseif v:IsA("Beam") then
+            v:Destroy()
+        elseif v:IsA("Smoke") then
+            v:Destroy()
+        elseif v:IsA("Fire") then
+            v:Destroy()
+        elseif v:IsA("Sparkles") then
+            v:Destroy()
+        elseif v:IsA("Explosion") then
+            v:Destroy()
+        elseif v:IsA("BodyVelocity") or v:IsA("BodyGyro") or v:IsA("BodyPosition") then
+            v:Destroy()
         elseif v:IsA("BasePart") then
             v.Material = Enum.Material.SmoothPlastic
             v.Reflectance = 0
@@ -136,3 +208,4 @@ Fix.MouseButton1Click:Connect(function()
 end)
 
 DeleteNPC.MouseButton1Click:Connect(RemoveAllNPC)
+DeletePurple.MouseButton1Click:Connect(RemoveAllPurpleEffects)
