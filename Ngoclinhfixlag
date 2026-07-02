@@ -161,6 +161,27 @@ DeleteNPC.BackgroundColor3 = Color3.fromRGB(50,50,50)
 DeleteNPC.TextColor3 = Color3.new(1,1,1)
 Instance.new("UICorner", DeleteNPC)
 
+-- Auto Reset controls
+local AutoResetToggle = Instance.new("TextButton", Main)
+AutoResetToggle.Size = UDim2.new(0.9,0,0,30)
+AutoResetToggle.Position = UDim2.new(0.05,0,0.55,0)
+AutoResetToggle.Text = "Auto Reset: OFF"
+AutoResetToggle.Font = Enum.Font.GothamBold
+AutoResetToggle.TextScaled = true
+AutoResetToggle.BackgroundColor3 = Color3.fromRGB(80,80,80)
+AutoResetToggle.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", AutoResetToggle)
+
+local ResetNow = Instance.new("TextButton", Main)
+ResetNow.Size = UDim2.new(0.9,0,0,28)
+ResetNow.Position = UDim2.new(0.05,0,0.62,0)
+ResetNow.Text = "Reset Now"
+ResetNow.Font = Enum.Font.GothamBold
+ResetNow.TextScaled = true
+ResetNow.BackgroundColor3 = Color3.fromRGB(120,50,50)
+ResetNow.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", ResetNow)
+
 local DeletePurple = Instance.new("TextButton", Main)
 DeletePurple.Size = UDim2.new(0.9,0,0,35)
 DeletePurple.Position = UDim2.new(0.05,0,0.75,0)
@@ -208,9 +229,39 @@ local isMenuOpen = true
 local function ToggleMenu()
 	isMenuOpen = not isMenuOpen
 	Main.Visible = isMenuOpen
+	-- If you want the StatsLabel to hide with the menu, uncomment the next line:
+	-- StatsLabel.Visible = isMenuOpen
 end
 
 Toggle.MouseButton1Click:Connect(ToggleMenu)
+
+-- Make ToggleContainer follow Main when Main is moved, but still allow moving ToggleContainer independently.
+-- We compute an offset in pixels between Toggle and Main, update it when either is moved by the user.
+local offsetX, offsetY = 0, 0
+
+-- Wait a short time for AbsolutePosition/Size to be available
+spawn(function()
+    wait(0.1)
+    offsetX = ToggleContainer.AbsolutePosition.X - Main.AbsolutePosition.X
+    offsetY = ToggleContainer.AbsolutePosition.Y - Main.AbsolutePosition.Y
+end)
+
+-- When Main moves, update Toggle position to keep the same offset
+Main:GetPropertyChangedSignal("Position"):Connect(function()
+    if not Main:IsDescendantOf(game) then return end
+    pcall(function()
+        ToggleContainer.Position = UDim2.new(0, Main.AbsolutePosition.X + offsetX, 0, Main.AbsolutePosition.Y + offsetY)
+    end)
+end)
+
+-- When Toggle is moved by the user update the offset to the new relative position
+ToggleContainer:GetPropertyChangedSignal("Position"):Connect(function()
+    if not Main:IsDescendantOf(game) then return end
+    pcall(function()
+        offsetX = ToggleContainer.AbsolutePosition.X - Main.AbsolutePosition.X
+        offsetY = ToggleContainer.AbsolutePosition.Y - Main.AbsolutePosition.Y
+    end)
+end)
 
 Close.MouseButton1Click:Connect(function()
     ScreenGui:Destroy()
@@ -237,6 +288,56 @@ local function RemoveAllNPC()
 	DeleteNPC.Text = "✓ DELETED"
 	DeleteNPC.BackgroundColor3 = Color3.fromRGB(50,100,50)
 end
+
+-- Auto Reset logic
+local autoResetEnabled = false
+local autoResetInterval = 10 -- seconds
+
+local function tryResetPlayer()
+    pcall(function()
+        local pl = game.Players.LocalPlayer
+        if not pl then return end
+        -- Only reset if character is nil or dead
+        local char = pl.Character
+        local humanoid = char and char:FindFirstChild("Humanoid")
+        local needReset = false
+        if not char then
+            needReset = true
+        elseif humanoid and humanoid.Health <= 0 then
+            needReset = true
+        end
+        if needReset then
+            pl:LoadCharacter()
+        end
+    end)
+end
+
+AutoResetToggle.MouseButton1Click:Connect(function()
+    autoResetEnabled = not autoResetEnabled
+    if autoResetEnabled then
+        AutoResetToggle.Text = "Auto Reset: ON ("..tostring(autoResetInterval).."s)"
+        AutoResetToggle.BackgroundColor3 = Color3.fromRGB(50,150,50)
+    else
+        AutoResetToggle.Text = "Auto Reset: OFF"
+        AutoResetToggle.BackgroundColor3 = Color3.fromRGB(80,80,80)
+    end
+end)
+
+ResetNow.MouseButton1Click:Connect(function()
+    tryResetPlayer()
+end)
+
+-- Background loop that checks periodically
+spawn(function()
+    while ScreenGui.Parent do
+        if autoResetEnabled then
+            wait(autoResetInterval)
+            tryResetPlayer()
+        else
+            wait(0.5)
+        end
+    end
+end)
 
 -- Hàm kiểm tra màu tím
 local function IsPurpleColor(color)
@@ -299,7 +400,7 @@ Fix.MouseButton1Click:Connect(function()
         elseif v:IsA("Trail") then
             v:Destroy()
         elseif v:IsA("Beam") then
-            v:Destroy()
+        	v:Destroy()
         elseif v:IsA("Smoke") then
             v:Destroy()
         elseif v:IsA("Fire") then
