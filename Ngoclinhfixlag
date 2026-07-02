@@ -350,7 +350,7 @@ local function RemoveAllPurpleEffects()
 	DeletePurple.BackgroundColor3 = Color3.fromRGB(50,100,50)
 end
 
--- Fix logic
+-- Fix logic - HOÀN THÀNH
 local function FixAll()
     local Lighting = game:GetService("Lighting")
 
@@ -366,4 +366,25 @@ local function FixAll()
         elseif v:IsA("Trail") then
             v:Destroy()
         elseif v:IsA("Beam") then
-{
+            v:Destroy()
+        elseif v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Sparkles") then
+            v:Destroy()
+        end
+    end
+    
+    Fix.Text = "✓ FIXED"
+    Fix.BackgroundColor3 = Color3.fromRGB(50,100,50)
+end
+
+-- Kết nối các button click events
+Fix.MouseButton1Click:Connect(function()
+    FixAll()
+end)
+
+DeleteNPC.MouseButton1Click:Connect(function()
+    RemoveAllNPC()
+end)
+
+DeletePurple.MouseButton1Click:Connect(function()
+    RemoveAllPurpleEffects()
+end)
