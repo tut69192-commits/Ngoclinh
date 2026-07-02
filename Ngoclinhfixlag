@@ -3,6 +3,20 @@ ScreenGui.Name = "NgocLinhHub"
 ScreenGui.Parent = game:GetService("CoreGui")
 ScreenGui.ResetOnSpawn = false
 
+-- Credit label at top center
+local CreditLabel = Instance.new("TextLabel", ScreenGui)
+CreditLabel.Name = "CreditLabel"
+CreditLabel.Size = UDim2.new(0,220,0,20)
+CreditLabel.Position = UDim2.new(0.5, -110, 0, 6)
+CreditLabel.AnchorPoint = Vector2.new(0.5, 0)
+CreditLabel.BackgroundTransparency = 1
+CreditLabel.Text = "script by ngọc linh"
+CreditLabel.Font = Enum.Font.GothamBold
+CreditLabel.TextSize = 14
+CreditLabel.TextColor3 = Color3.fromRGB(200,200,200)
+CreditLabel.TextScaled = false
+CreditLabel.ZIndex = 12
+
 local Main = Instance.new("Frame", ScreenGui)
 Main.Size = UDim2.new(0,250,0,250)
 Main.Position = UDim2.new(0.5,-125,0.5,-125)
