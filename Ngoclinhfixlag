@@ -4,8 +4,8 @@ ScreenGui.Parent = game:GetService("CoreGui")
 ScreenGui.ResetOnSpawn = false
 
 local Main = Instance.new("Frame", ScreenGui)
-Main.Size = UDim2.new(0,250,0,120)
-Main.Position = UDim2.new(0.5,-125,0.5,-60)
+Main.Size = UDim2.new(0,250,0,170)
+Main.Position = UDim2.new(0.5,-125,0.5,-85)
 Main.BackgroundColor3 = Color3.fromRGB(30,30,30)
 Main.BorderSizePixel = 0
 Main.Active = true
@@ -21,7 +21,7 @@ Dark.BackgroundTransparency = 0.45
 Instance.new("UICorner", Dark).CornerRadius = UDim.new(0,15)
 
 local Title = Instance.new("TextLabel", Main)
-Title.Size = UDim2.new(1,0,0,35)
+Title.Size = UDim2.new(1,0,0,30)
 Title.BackgroundTransparency = 1
 Title.Text = "Fix Lag"
 Title.TextScaled = true
@@ -29,14 +29,24 @@ Title.Font = Enum.Font.GothamBold
 Title.TextColor3 = Color3.fromRGB(255,255,255)
 
 local Fix = Instance.new("TextButton", Main)
-Fix.Size = UDim2.new(0.8,0,0,40)
-Fix.Position = UDim2.new(0.1,0,0.45,0)
+Fix.Size = UDim2.new(0.45,0,0,35)
+Fix.Position = UDim2.new(0.05,0,0.40,0)
 Fix.Text = "FIX LAG"
 Fix.Font = Enum.Font.GothamBold
 Fix.TextScaled = true
 Fix.BackgroundColor3 = Color3.fromRGB(50,50,50)
 Fix.TextColor3 = Color3.new(1,1,1)
 Instance.new("UICorner", Fix)
+
+local DeleteNPC = Instance.new("TextButton", Main)
+DeleteNPC.Size = UDim2.new(0.45,0,0,35)
+DeleteNPC.Position = UDim2.new(0.5,0,0.40,0)
+DeleteNPC.Text = "DELETE NPC"
+DeleteNPC.Font = Enum.Font.GothamBold
+DeleteNPC.TextScaled = true
+DeleteNPC.BackgroundColor3 = Color3.fromRGB(50,50,50)
+DeleteNPC.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", DeleteNPC)
 
 local Close = Instance.new("TextButton", Main)
 Close.Size = UDim2.new(0,25,0,25)
@@ -76,6 +86,28 @@ Close.MouseButton1Click:Connect(function()
     ScreenGui:Destroy()
 end)
 
+-- Hàm xóa NPC
+local function RemoveAllNPC()
+	local function IsNPC(character)
+		if not character:FindFirstChild("Humanoid") then return false end
+		if character:FindFirstChild("HumanoidRootPart") then
+			return true
+		end
+		return false
+	end
+
+	for _, obj in ipairs(workspace:GetDescendants()) do
+		if obj:IsA("Model") and IsNPC(obj) and obj ~= game.Players.LocalPlayer.Character then
+			pcall(function()
+				obj:Destroy()
+			end)
+		end
+	end
+	
+	DeleteNPC.Text = "✓ DELETED"
+	DeleteNPC.BackgroundColor3 = Color3.fromRGB(50,100,50)
+end
+
 Fix.MouseButton1Click:Connect(function()
     local Lighting = game:GetService("Lighting")
 
@@ -102,3 +134,5 @@ Fix.MouseButton1Click:Connect(function()
     Fix.Text = "✓ FIXED"
     Fix.BackgroundColor3 = Color3.fromRGB(50,100,50)
 end)
+
+DeleteNPC.MouseButton1Click:Connect(RemoveAllNPC)
