@@ -161,10 +161,13 @@ RunService.Heartbeat:Connect(function(dt)
     end
 end)
 
+-- Dark background KHÔNG click-able
 local Dark = Instance.new("Frame", Main)
 Dark.Size = UDim2.new(1,0,1,0)
 Dark.BackgroundColor3 = Color3.new(0,0,0)
 Dark.BackgroundTransparency = 0.45
+Dark.MouseTransparency = 1
+Dark.ZIndex = 1
 Instance.new("UICorner", Dark).CornerRadius = UDim.new(0,15)
 
 local Title = Instance.new("TextLabel", Main)
@@ -174,6 +177,7 @@ Title.Text = "FIX LAG VIP"
 Title.TextScaled = true
 Title.Font = Enum.Font.GothamBold
 Title.TextColor3 = Color3.fromRGB(255,255,255)
+Title.ZIndex = 2
 
 local Fix = Instance.new("TextButton", Main)
 Fix.Size = UDim2.new(0.45,0,0,35)
@@ -183,7 +187,9 @@ Fix.Font = Enum.Font.GothamBold
 Fix.TextScaled = true
 Fix.BackgroundColor3 = Color3.fromRGB(50,50,50)
 Fix.TextColor3 = Color3.new(1,1,1)
-Instance.new("UICorner", Fix)
+Fix.ZIndex = 3
+Fix.BorderSizePixel = 0
+Instance.new("UICorner", Fix).CornerRadius = UDim.new(0, 8)
 
 local DeleteNPC = Instance.new("TextButton", Main)
 DeleteNPC.Size = UDim2.new(0.45,0,0,35)
@@ -193,9 +199,9 @@ DeleteNPC.Font = Enum.Font.GothamBold
 DeleteNPC.TextScaled = true
 DeleteNPC.BackgroundColor3 = Color3.fromRGB(50,50,50)
 DeleteNPC.TextColor3 = Color3.new(1,1,1)
-Instance.new("UICorner", DeleteNPC)
-
--- Auto Reset controls (REMOVED)
+DeleteNPC.ZIndex = 3
+DeleteNPC.BorderSizePixel = 0
+Instance.new("UICorner", DeleteNPC).CornerRadius = UDim.new(0, 8)
 
 local DeletePurple = Instance.new("TextButton", Main)
 DeletePurple.Size = UDim2.new(0.9,0,0,35)
@@ -205,7 +211,9 @@ DeletePurple.Font = Enum.Font.GothamBold
 DeletePurple.TextScaled = true
 DeletePurple.BackgroundColor3 = Color3.fromRGB(150,50,150)
 DeletePurple.TextColor3 = Color3.new(1,1,1)
-Instance.new("UICorner", DeletePurple)
+DeletePurple.ZIndex = 3
+DeletePurple.BorderSizePixel = 0
+Instance.new("UICorner", DeletePurple).CornerRadius = UDim.new(0, 8)
 
 local Close = Instance.new("TextButton", Main)
 Close.Size = UDim2.new(0,25,0,25)
@@ -215,7 +223,9 @@ Close.Font = Enum.Font.GothamBold
 Close.TextScaled = true
 Close.BackgroundColor3 = Color3.fromRGB(220,60,60)
 Close.TextColor3 = Color3.new(1,1,1)
-Instance.new("UICorner", Close)
+Close.ZIndex = 3
+Close.BorderSizePixel = 0
+Instance.new("UICorner", Close).CornerRadius = UDim.new(0, 5)
 
 -- Nút đóng/mở menu - Có thể di chuyển được
 local ToggleContainer = Instance.new("Frame", ScreenGui)
@@ -244,14 +254,11 @@ local isMenuOpen = true
 local function ToggleMenu()
 	isMenuOpen = not isMenuOpen
 	Main.Visible = isMenuOpen
-	-- If you want the StatsLabel to hide with the menu, uncomment the next line:
-	-- StatsLabel.Visible = isMenuOpen
 end
 
 Toggle.MouseButton1Click:Connect(ToggleMenu)
 
 -- Make ToggleContainer follow Main when Main is moved, but still allow moving ToggleContainer independently.
--- We compute an offset in pixels between Toggle and Main, update it when either is moved by the user.
 local offsetX, offsetY = 0, 0
 
 -- Wait a short time for AbsolutePosition/Size to be available
@@ -306,6 +313,7 @@ end
 
 -- Hàm kiểm tra màu tím
 local function IsPurpleColor(color)
+	if not color then return false end
 	local r, g, b = color.R, color.G, color.B
 	-- Kiểm tra nếu màu tím (R cao, B cao, G thấp)
 	return r > 0.5 and b > 0.5 and g < 0.5
@@ -318,19 +326,25 @@ local function RemoveAllPurpleEffects()
 	for _, v in ipairs(game:GetDescendants()) do
 		pcall(function()
 			if v:IsA("ParticleEmitter") then
-				if IsPurpleColor(v.Color.Keypoints[1].Value) then
-					v:Destroy()
-					removedCount = removedCount + 1
+				if v.Color and v.Color.Keypoints and v.Color.Keypoints[1] then
+					if IsPurpleColor(v.Color.Keypoints[1].Value) then
+						v:Destroy()
+						removedCount = removedCount + 1
+					end
 				end
 			elseif v:IsA("Trail") then
-				if IsPurpleColor(v.Color.Keypoints[1].Value) then
-					v:Destroy()
-					removedCount = removedCount + 1
+				if v.Color and v.Color.Keypoints and v.Color.Keypoints[1] then
+					if IsPurpleColor(v.Color.Keypoints[1].Value) then
+						v:Destroy()
+						removedCount = removedCount + 1
+					end
 				end
 			elseif v:IsA("Beam") then
-				if IsPurpleColor(v.Color.Keypoints[1].Value) then
-					v:Destroy()
-					removedCount = removedCount + 1
+				if v.Color and v.Color.Keypoints and v.Color.Keypoints[1] then
+					if IsPurpleColor(v.Color.Keypoints[1].Value) then
+						v:Destroy()
+						removedCount = removedCount + 1
+					end
 				end
 			elseif v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Sparkles") then
 				if v.Color and IsPurpleColor(v.Color) then
@@ -346,7 +360,7 @@ local function RemoveAllPurpleEffects()
 		end)
 	end
 	
-	DeletePurple.Text = "✓ ĐÃ XÓA"
+	DeletePurple.Text = "✓ ĐÃ XÓA (" .. removedCount .. ")"
 	DeletePurple.BackgroundColor3 = Color3.fromRGB(50,100,50)
 end
 
@@ -360,31 +374,44 @@ local function FixAll()
         Lighting.Brightness = 1
     end)
 
+    local removedCount = 0
     for _,v in ipairs(game:GetDescendants()) do
-        if v:IsA("ParticleEmitter") then
-            v:Destroy()
-        elseif v:IsA("Trail") then
-            v:Destroy()
-        elseif v:IsA("Beam") then
-            v:Destroy()
-        elseif v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Sparkles") then
-            v:Destroy()
-        end
+        pcall(function()
+            if v:IsA("ParticleEmitter") then
+                v:Destroy()
+                removedCount = removedCount + 1
+            elseif v:IsA("Trail") then
+                v:Destroy()
+                removedCount = removedCount + 1
+            elseif v:IsA("Beam") then
+                v:Destroy()
+                removedCount = removedCount + 1
+            elseif v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Sparkles") then
+                v:Destroy()
+                removedCount = removedCount + 1
+            end
+        end)
     end
     
-    Fix.Text = "✓ FIXED"
+    Fix.Text = "✓ FIXED (" .. removedCount .. ")"
     Fix.BackgroundColor3 = Color3.fromRGB(50,100,50)
 end
 
 -- Kết nối các button click events
 Fix.MouseButton1Click:Connect(function()
-    FixAll()
+    pcall(function()
+        FixAll()
+    end)
 end)
 
 DeleteNPC.MouseButton1Click:Connect(function()
-    RemoveAllNPC()
+    pcall(function()
+        RemoveAllNPC()
+    end)
 end)
 
 DeletePurple.MouseButton1Click:Connect(function()
-    RemoveAllPurpleEffects()
+    pcall(function()
+        RemoveAllPurpleEffects()
+    end)
 end)
