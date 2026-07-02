@@ -14,6 +14,119 @@ Main.Name = "MainMenu"
 
 Instance.new("UICorner", Main).CornerRadius = UDim.new(0,15)
 
+-- LED lights around the menu (7-color)
+local LedContainer = Instance.new("Frame", Main)
+LedContainer.Size = UDim2.new(1,0,1,0)
+LedContainer.Position = UDim2.new(0,0,0,0)
+LedContainer.BackgroundTransparency = 1
+LedContainer.Name = "LedContainer"
+LedContainer.ZIndex = 9
+
+local ledCount = 7
+local leds = {}
+local ledSize = 12 -- radius (px) for LEDs
+
+local positions = {
+    UDim2.new(0.5, 0, 0, -6),      -- top center (slightly above)
+    UDim2.new(1, 8, 0.15, 0),      -- right-top
+    UDim2.new(1, 8, 0.5, 0),       -- right center
+    UDim2.new(1, 8, 0.85, 0),      -- right-bottom
+    UDim2.new(0.5, 0, 1, 8),       -- bottom center (slightly below)
+    UDim2.new(0, -8, 0.85, 0),     -- left-bottom
+    UDim2.new(0, -8, 0.5, 0),      -- left center
+}
+
+local colors = {
+    Color3.fromRGB(255,0,0),    -- red
+    Color3.fromRGB(255,128,0),  -- orange
+    Color3.fromRGB(255,255,0),  -- yellow
+    Color3.fromRGB(0,255,0),    -- green
+    Color3.fromRGB(0,255,255),  -- cyan
+    Color3.fromRGB(0,0,255),    -- blue
+    Color3.fromRGB(128,0,255),  -- purple
+}
+
+for i = 1, ledCount do
+    local led = Instance.new("Frame", LedContainer)
+    led.Name = "LED"..i
+    led.Size = UDim2.new(0, ledSize, 0, ledSize)
+    led.Position = positions[i] or UDim2.new(0,0,0,0)
+    led.AnchorPoint = Vector2.new(0.5, 0.5)
+    led.BackgroundTransparency = 0
+    led.BackgroundColor3 = colors[i]
+    led.ZIndex = 10
+    led.BorderSizePixel = 0
+    local corner = Instance.new("UICorner", led)
+    corner.CornerRadius = UDim.new(1, 0) -- make circular
+    table.insert(leds, led)
+end
+
+-- Simple cycling animation so the LEDs rotate colors
+spawn(function()
+    local offset = 0
+    local TweenService = game:GetService("TweenService")
+    while ScreenGui.Parent do
+        for i, led in ipairs(leds) do
+            local idx = ((i + offset - 1) % #colors) + 1
+            local tweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Linear)
+            pcall(function()
+                TweenService:Create(led, tweenInfo, {BackgroundColor3 = colors[idx]}):Play()
+            end)
+        end
+        offset = offset + 1
+        wait(0.25)
+    end
+end)
+
+-- FPS and Ping display
+local StatsLabel = Instance.new("TextLabel", ScreenGui)
+StatsLabel.Name = "StatsLabel"
+StatsLabel.Size = UDim2.new(0,150,0,44)
+StatsLabel.Position = UDim2.new(1,-160,0,10) -- top-right of screen
+StatsLabel.BackgroundTransparency = 0.6
+StatsLabel.BackgroundColor3 = Color3.fromRGB(20,20,20)
+StatsLabel.TextColor3 = Color3.fromRGB(255,255,255)
+StatsLabel.TextScaled = false
+StatsLabel.Font = Enum.Font.Gotham
+StatsLabel.Text = "FPS: --\nPing: -- ms"
+StatsLabel.TextXAlignment = Enum.TextXAlignment.Left
+StatsLabel.TextYAlignment = Enum.TextYAlignment.Top
+StatsLabel.TextStrokeTransparency = 1
+StatsLabel.ZIndex = 11
+Instance.new("UICorner", StatsLabel).CornerRadius = UDim.new(0,6)
+
+local RunService = game:GetService("RunService")
+local StatsService = game:GetService("Stats")
+local frameCount = 0
+local acc = 0
+local updateInterval = 0.5
+
+RunService.Heartbeat:Connect(function(dt)
+    frameCount = frameCount + 1
+    acc = acc + dt
+    if acc >= updateInterval then
+        local fps = math.floor(frameCount / acc + 0.5)
+        frameCount = 0
+        acc = 0
+
+        -- Try getting ping from Stats service; fallback to N/A
+        local pingText = "N/A"
+        pcall(function()
+            -- Common path in some clients: Stats.Network.ServerStatsItem["Data Ping"]
+            if StatsService and StatsService.Network and StatsService.Network.ServerStatsItem then
+                local item = StatsService.Network.ServerStatsItem["Data Ping"]
+                if item and item.Value then
+                    pingText = tostring(math.floor(item.Value))
+                end
+            elseif StatsService and StatsService.Network and StatsService.Network.ClientPing then
+                pingText = tostring(math.floor(StatsService.Network.ClientPing))
+            end
+        end)
+
+        StatsLabel.Text = string.format("FPS: %d\nPing: %s ms", fps, pingText)
+    end
+end)
+
 local Dark = Instance.new("Frame", Main)
 Dark.Size = UDim2.new(1,0,1,0)
 Dark.BackgroundColor3 = Color3.new(0,0,0)
