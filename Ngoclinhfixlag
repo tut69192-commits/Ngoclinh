@@ -1,408 +1,236 @@
+-- Simple Fix Lag Menu Script
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "NgocLinhHub"
+ScreenGui.Name = "FixLagMenu"
 ScreenGui.Parent = game:GetService("CoreGui")
 ScreenGui.ResetOnSpawn = false
 
--- Credit label at top center
-local CreditLabel = Instance.new("TextLabel", ScreenGui)
-CreditLabel.Name = "CreditLabel"
-CreditLabel.Size = UDim2.new(0,220,0,20)
-CreditLabel.Position = UDim2.new(0.5, -110, 0, 6)
-CreditLabel.AnchorPoint = Vector2.new(0.5, 0)
-CreditLabel.BackgroundTransparency = 1
-CreditLabel.Text = "script by ngọc linh"
-CreditLabel.Font = Enum.Font.GothamBold
-CreditLabel.TextSize = 14
-CreditLabel.TextColor3 = Color3.fromRGB(200,200,200)
-CreditLabel.TextScaled = false
-CreditLabel.ZIndex = 12
+-- Main Menu Frame
+local MainFrame = Instance.new("Frame", ScreenGui)
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 300, 0, 350)
+MainFrame.Position = UDim2.new(0.5, -150, 0.5, -175)
+MainFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
 
-local Main = Instance.new("Frame", ScreenGui)
-Main.Size = UDim2.new(0,250,0,300)
-Main.Position = UDim2.new(0.5,-125,0.5,-150)
-Main.BackgroundColor3 = Color3.fromRGB(30,30,30)
-Main.BorderSizePixel = 0
-Main.Active = true
-Main.Draggable = true
-Main.Name = "MainMenu"
+local UICorner = Instance.new("UICorner", MainFrame)
+UICorner.CornerRadius = UDim.new(0, 12)
 
-Instance.new("UICorner", Main).CornerRadius = UDim.new(0,15)
+-- Header
+local Header = Instance.new("Frame", MainFrame)
+Header.Name = "Header"
+Header.Size = UDim2.new(1, 0, 0, 50)
+Header.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+Header.BorderSizePixel = 0
 
--- LED lights around the menu (7-color)
-local LedContainer = Instance.new("Frame", Main)
-LedContainer.Size = UDim2.new(1,0,1,0)
-LedContainer.Position = UDim2.new(0,0,0,0)
-LedContainer.BackgroundTransparency = 1
-LedContainer.Name = "LedContainer"
-LedContainer.ZIndex = 9
+local HeaderCorner = Instance.new("UICorner", Header)
+HeaderCorner.CornerRadius = UDim.new(0, 12)
 
-local ledCount = 7
-local leds = {}
-local ledSize = 12
-
-local positions = {
-    UDim2.new(0.5, 0, 0, -6),
-    UDim2.new(1, 8, 0.15, 0),
-    UDim2.new(1, 8, 0.5, 0),
-    UDim2.new(1, 8, 0.85, 0),
-    UDim2.new(0.5, 0, 1, 8),
-    UDim2.new(0, -8, 0.85, 0),
-    UDim2.new(0, -8, 0.5, 0),
-}
-
-local colors = {
-    Color3.fromRGB(255,0,0),
-    Color3.fromRGB(255,128,0),
-    Color3.fromRGB(255,255,0),
-    Color3.fromRGB(0,255,0),
-    Color3.fromRGB(0,255,255),
-    Color3.fromRGB(0,0,255),
-    Color3.fromRGB(128,0,255),
-}
-
-for i = 1, ledCount do
-    local led = Instance.new("Frame", LedContainer)
-    led.Name = "LED"..i
-    led.Size = UDim2.new(0, ledSize, 0, ledSize)
-    led.Position = positions[i] or UDim2.new(0,0,0,0)
-    led.AnchorPoint = Vector2.new(0.5, 0.5)
-    led.BackgroundTransparency = 0
-    led.BackgroundColor3 = colors[i]
-    led.ZIndex = 10
-    led.BorderSizePixel = 0
-    local corner = Instance.new("UICorner", led)
-    corner.CornerRadius = UDim.new(1, 0)
-    table.insert(leds, led)
-end
-
-spawn(function()
-    local offset = 0
-    local TweenService = game:GetService("TweenService")
-    while ScreenGui.Parent do
-        for i, led in ipairs(leds) do
-            local idx = ((i + offset - 1) % #colors) + 1
-            local tweenInfo = TweenInfo.new(0.25, Enum.EasingStyle.Linear)
-            pcall(function()
-                TweenService:Create(led, tweenInfo, {BackgroundColor3 = colors[idx]}):Play()
-            end)
-        end
-        offset = offset + 1
-        wait(0.25)
-    end
-end)
-
--- FPS and Ping display
-local StatsLabel = Instance.new("TextLabel", ScreenGui)
-StatsLabel.Name = "StatsLabel"
-StatsLabel.Size = UDim2.new(0,220,0,120)
-StatsLabel.Position = UDim2.new(1,-230,0,10)
-StatsLabel.BackgroundTransparency = 0.6
-StatsLabel.BackgroundColor3 = Color3.fromRGB(20,20,20)
-StatsLabel.TextColor3 = Color3.fromRGB(255,255,255)
-StatsLabel.TextScaled = false
-StatsLabel.Font = Enum.Font.Gotham
-StatsLabel.Text = "FPS: --\nPing: -- ms\nPlayers: --\n"
-StatsLabel.TextXAlignment = Enum.TextXAlignment.Left
-StatsLabel.TextYAlignment = Enum.TextYAlignment.Top
-StatsLabel.TextStrokeTransparency = 1
-StatsLabel.ZIndex = 11
-StatsLabel.TextWrapped = true
-Instance.new("UICorner", StatsLabel).CornerRadius = UDim.new(0,6)
-
-local RunService = game:GetService("RunService")
-local StatsService = game:GetService("Stats")
-local Players = game:GetService("Players")
-local frameCount = 0
-local acc = 0
-local updateInterval = 0.5
-
-RunService.Heartbeat:Connect(function(dt)
-    frameCount = frameCount + 1
-    acc = acc + dt
-    if acc >= updateInterval then
-        local fps = math.floor(frameCount / acc + 0.5)
-        frameCount = 0
-        acc = 0
-
-        local pingText = "N/A"
-        pcall(function()
-            if StatsService and StatsService.Network and StatsService.Network.ServerStatsItem then
-                local item = StatsService.Network.ServerStatsItem["Data Ping"]
-                if item and item.Value then
-                    pingText = tostring(math.floor(item.Value))
-                end
-            elseif StatsService and StatsService.Network and StatsService.Network.ClientPing then
-                pingText = tostring(math.floor(StatsService.Network.ClientPing))
-            end
-        end)
-
-        local playerList = Players:GetPlayers()
-        local playerCount = #playerList
-        local names = {}
-        for i, pl in ipairs(playerList) do
-            table.insert(names, pl.Name)
-            if i >= 10 then break end
-        end
-        local namesText = ""
-        if #names > 0 then
-            namesText = table.concat(names, ", ")
-            if playerCount > 10 then
-                namesText = namesText .. ", ..."
-            end
-        else
-            namesText = "(no players)"
-        end
-
-        StatsLabel.Text = string.format("FPS: %d\nPing: %s ms\nPlayers: %d\n%s", fps, pingText, playerCount, namesText)
-    end
-end)
-
--- Dark background
-local Dark = Instance.new("Frame", Main)
-Dark.Size = UDim2.new(1,0,1,0)
-Dark.BackgroundColor3 = Color3.new(0,0,0)
-Dark.BackgroundTransparency = 0.45
-Dark.MouseTransparency = 1
-Dark.ZIndex = 1
-Instance.new("UICorner", Dark).CornerRadius = UDim.new(0,15)
-
-local Title = Instance.new("TextLabel", Main)
-Title.Size = UDim2.new(1,0,0,40)
-Title.Position = UDim2.new(0,0,0,0)
-Title.BackgroundTransparency = 1
-Title.Text = "FIX LAG VIP"
-Title.TextScaled = true
+local Title = Instance.new("TextLabel", Header)
+Title.Text = "FIX LAG TOOL"
+Title.TextSize = 20
 Title.Font = Enum.Font.GothamBold
-Title.TextColor3 = Color3.fromRGB(255,255,255)
-Title.ZIndex = 2
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.BackgroundTransparency = 1
+Title.Size = UDim2.new(1, 0, 1, 0)
 
-local Fix = Instance.new("TextButton", Main)
-Fix.Size = UDim2.new(0.45,-5,0,40)
-Fix.Position = UDim2.new(0.05,0,0.15,0)
-Fix.Text = "𝙉𝙂𝙊𝘾𝙇𝙄𝙉𝙃"
-Fix.Font = Enum.Font.GothamBold
-Fix.TextScaled = true
-Fix.BackgroundColor3 = Color3.fromRGB(50,50,50)
-Fix.TextColor3 = Color3.new(1,1,1)
-Fix.ZIndex = 3
-Fix.BorderSizePixel = 0
-Instance.new("UICorner", Fix).CornerRadius = UDim.new(0, 8)
+-- Close Button
+local CloseBtn = Instance.new("TextButton", Header)
+CloseBtn.Name = "CloseBtn"
+CloseBtn.Text = "X"
+CloseBtn.Size = UDim2.new(0, 35, 0, 35)
+CloseBtn.Position = UDim2.new(1, -40, 0, 7)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(220, 60, 60)
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.TextSize = 18
+CloseBtn.BorderSizePixel = 0
 
-local DeleteNPC = Instance.new("TextButton", Main)
-DeleteNPC.Size = UDim2.new(0.45,-5,0,40)
-DeleteNPC.Position = UDim2.new(0.55,0,0.15,0)
-DeleteNPC.Text = "xóa npc"
-DeleteNPC.Font = Enum.Font.GothamBold
-DeleteNPC.TextScaled = true
-DeleteNPC.BackgroundColor3 = Color3.fromRGB(50,50,50)
-DeleteNPC.TextColor3 = Color3.new(1,1,1)
-DeleteNPC.ZIndex = 3
-DeleteNPC.BorderSizePixel = 0
-Instance.new("UICorner", DeleteNPC).CornerRadius = UDim.new(0, 8)
+local CloseBtnCorner = Instance.new("UICorner", CloseBtn)
+CloseBtnCorner.CornerRadius = UDim.new(0, 6)
 
-local DeletePurple = Instance.new("TextButton", Main)
-DeletePurple.Size = UDim2.new(0.9,-10,0,40)
-DeletePurple.Position = UDim2.new(0.05,0,0.55,0)
-DeletePurple.Text = "xóa tất cả hiệu ứng tím"
-DeletePurple.Font = Enum.Font.GothamBold
-DeletePurple.TextScaled = true
-DeletePurple.BackgroundColor3 = Color3.fromRGB(150,50,150)
-DeletePurple.TextColor3 = Color3.new(1,1,1)
-DeletePurple.ZIndex = 3
-DeletePurple.BorderSizePixel = 0
-Instance.new("UICorner", DeletePurple).CornerRadius = UDim.new(0, 8)
-
-local Close = Instance.new("TextButton", Main)
-Close.Size = UDim2.new(0,28,0,28)
-Close.Position = UDim2.new(1,-32,0,6)
-Close.Text = "X"
-Close.Font = Enum.Font.GothamBold
-Close.TextScaled = true
-Close.BackgroundColor3 = Color3.fromRGB(220,60,60)
-Close.TextColor3 = Color3.new(1,1,1)
-Close.ZIndex = 3
-Close.BorderSizePixel = 0
-Instance.new("UICorner", Close).CornerRadius = UDim.new(0, 5)
-
--- Toggle button
-local ToggleContainer = Instance.new("Frame", ScreenGui)
-ToggleContainer.Size = UDim2.new(0,50,0,50)
-ToggleContainer.Position = UDim2.new(0.5,-25,0.95,-25)
-ToggleContainer.BackgroundTransparency = 1
-ToggleContainer.Active = true
-ToggleContainer.Draggable = true
-ToggleContainer.Name = "ToggleContainer"
-
-local Toggle = Instance.new("TextButton", ToggleContainer)
-Toggle.Size = UDim2.new(1,0,1,0)
-Toggle.BackgroundColor3 = Color3.fromRGB(50,50,50)
-Toggle.TextColor3 = Color3.new(1,1,1)
-Toggle.Text = "☰"
-Toggle.Font = Enum.Font.GothamBold
-Toggle.TextScaled = true
-Toggle.ZIndex = 10
-Toggle.BorderSizePixel = 0
-Toggle.Name = "ToggleButton"
-Instance.new("UICorner", Toggle).CornerRadius = UDim.new(0,15)
-
-local isMenuOpen = true
-
-local function ToggleMenu()
-	isMenuOpen = not isMenuOpen
-	Main.Visible = isMenuOpen
-end
-
-Toggle.MouseButton1Click:Connect(ToggleMenu)
-
-local offsetX, offsetY = 0, 0
-
-spawn(function()
-    wait(0.1)
-    offsetX = ToggleContainer.AbsolutePosition.X - Main.AbsolutePosition.X
-    offsetY = ToggleContainer.AbsolutePosition.Y - Main.AbsolutePosition.Y
-end)
-
-Main:GetPropertyChangedSignal("Position"):Connect(function()
-    if not Main:IsDescendantOf(game) then return end
-    pcall(function()
-        ToggleContainer.Position = UDim2.new(0, Main.AbsolutePosition.X + offsetX, 0, Main.AbsolutePosition.Y + offsetY)
-    end)
-end)
-
-ToggleContainer:GetPropertyChangedSignal("Position"):Connect(function()
-    if not Main:IsDescendantOf(game) then return end
-    pcall(function()
-        offsetX = ToggleContainer.AbsolutePosition.X - Main.AbsolutePosition.X
-        offsetY = ToggleContainer.AbsolutePosition.Y - Main.AbsolutePosition.Y
-    end)
-end)
-
-Close.MouseButton1Click:Connect(function()
+CloseBtn.MouseButton1Click:Connect(function()
     ScreenGui:Destroy()
 end)
 
--- Remove NPC function
-local function RemoveAllNPC()
-	local function IsNPC(character)
-		if not character:FindFirstChild("Humanoid") then return false end
-		if character:FindFirstChild("HumanoidRootPart") then
-			return true
-		end
-		return false
-	end
+-- Content Frame
+local ContentFrame = Instance.new("Frame", MainFrame)
+ContentFrame.Name = "Content"
+ContentFrame.Size = UDim2.new(1, 0, 1, -50)
+ContentFrame.Position = UDim2.new(0, 0, 0, 50)
+ContentFrame.BackgroundTransparency = 1
+ContentFrame.BorderSizePixel = 0
 
-	for _, obj in ipairs(workspace:GetDescendants()) do
-		if obj:IsA("Model") and IsNPC(obj) and obj ~= game.Players.LocalPlayer.Character then
-			pcall(function()
-				obj:Destroy()
-			end)
-		end
-	end
-	
-	DeleteNPC.Text = "✓ DELETED"
-	DeleteNPC.BackgroundColor3 = Color3.fromRGB(50,100,50)
+-- Helper function to create buttons
+local function CreateButton(parent, text, position, size, backgroundColor)
+    local button = Instance.new("TextButton", parent)
+    button.Text = text
+    button.Size = size
+    button.Position = position
+    button.BackgroundColor3 = backgroundColor
+    button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    button.Font = Enum.Font.GothamBold
+    button.TextSize = 16
+    button.BorderSizePixel = 0
+    button.TextWrapped = true
+    
+    local corner = Instance.new("UICorner", button)
+    corner.CornerRadius = UDim.new(0, 8)
+    
+    return button
 end
 
--- Check purple color function
-local function IsPurpleColor(color)
-	if not color then return false end
-	local r, g, b = color.R, color.G, color.B
-	return r > 0.5 and b > 0.5 and g < 0.5
-end
+-- Button 1: Fix Lag
+local FixBtn = CreateButton(ContentFrame, "🎨 FIX LAG", UDim2.new(0.05, 0, 0.15, 0), UDim2.new(0.9, 0, 0, 50), Color3.fromRGB(100, 150, 200))
 
--- Remove purple effects function
-local function RemoveAllPurpleEffects()
-	local removedCount = 0
-	
-	for _, v in ipairs(game:GetDescendants()) do
-		pcall(function()
-			if v:IsA("ParticleEmitter") then
-				if v.Color and v.Color.Keypoints and v.Color.Keypoints[1] then
-					if IsPurpleColor(v.Color.Keypoints[1].Value) then
-						v:Destroy()
-						removedCount = removedCount + 1
-					end
-				end
-			elseif v:IsA("Trail") then
-				if v.Color and v.Color.Keypoints and v.Color.Keypoints[1] then
-					if IsPurpleColor(v.Color.Keypoints[1].Value) then
-						v:Destroy()
-						removedCount = removedCount + 1
-					end
-				end
-			elseif v:IsA("Beam") then
-				if v.Color and v.Color.Keypoints and v.Color.Keypoints[1] then
-					if IsPurpleColor(v.Color.Keypoints[1].Value) then
-						v:Destroy()
-						removedCount = removedCount + 1
-					end
-				end
-			elseif v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Sparkles") then
-				if v.Color and IsPurpleColor(v.Color) then
-					v:Destroy()
-					removedCount = removedCount + 1
-				end
-			elseif v:IsA("BasePart") then
-				if v.Color and IsPurpleColor(v.Color) then
-					v:Destroy()
-					removedCount = removedCount + 1
-				end
-			end
-		end)
-	end
-	
-	DeletePurple.Text = "✓ ĐÃ XÓA (" .. removedCount .. ")"
-	DeletePurple.BackgroundColor3 = Color3.fromRGB(50,100,50)
-end
+-- Button 2: Remove NPC
+local RemoveNPCBtn = CreateButton(ContentFrame, "🗑️ XÓA NPC", UDim2.new(0.05, 0, 0.40, 0), UDim2.new(0.9, 0, 0, 50), Color3.fromRGB(150, 100, 100))
 
--- Fix all function
-local function FixAll()
-    local Lighting = game:GetService("Lighting")
+-- Button 3: Remove Purple Effects
+local RemovePurpleBtn = CreateButton(ContentFrame, "💜 XÓA HIỆU ỨNG TÍM", UDim2.new(0.05, 0, 0.65, 0), UDim2.new(0.9, 0, 0, 50), Color3.fromRGB(150, 50, 150))
 
+-- Status Label
+local StatusLabel = Instance.new("TextLabel", ContentFrame)
+StatusLabel.Name = "Status"
+StatusLabel.Text = "Sẵn sàng..."
+StatusLabel.Size = UDim2.new(0.9, 0, 0, 30)
+StatusLabel.Position = UDim2.new(0.05, 0, 0.88, 0)
+StatusLabel.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+StatusLabel.TextColor3 = Color3.fromRGB(100, 255, 100)
+StatusLabel.Font = Enum.Font.Gotham
+StatusLabel.TextSize = 12
+StatusLabel.BorderSizePixel = 0
+
+local StatusCorner = Instance.new("UICorner", StatusLabel)
+StatusCorner.CornerRadius = UDim.new(0, 6)
+
+-- Fix Lag Function
+local function FixLag()
+    StatusLabel.Text = "Đang xử lý..."
+    local count = 0
+    
     pcall(function()
+        local Lighting = game:GetService("Lighting")
         Lighting.GlobalShadows = false
         Lighting.FogEnd = 100000
-        Lighting.Brightness = 1
+        Lighting.Brightness = 2
     end)
-
-    local removedCount = 0
-    for _,v in ipairs(game:GetDescendants()) do
+    
+    for _, v in ipairs(game:GetDescendants()) do
         pcall(function()
-            if v:IsA("ParticleEmitter") then
+            if v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Beam") then
                 v:Destroy()
-                removedCount = removedCount + 1
-            elseif v:IsA("Trail") then
-                v:Destroy()
-                removedCount = removedCount + 1
-            elseif v:IsA("Beam") then
-                v:Destroy()
-                removedCount = removedCount + 1
+                count = count + 1
             elseif v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Sparkles") then
                 v:Destroy()
-                removedCount = removedCount + 1
+                count = count + 1
             end
         end)
     end
     
-    Fix.Text = "✓ FIXED (" .. removedCount .. ")"
-    Fix.BackgroundColor3 = Color3.fromRGB(50,100,50)
+    FixBtn.Text = "✓ ĐÃ FIX (" .. count .. ")"
+    FixBtn.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
+    StatusLabel.Text = "Xóa " .. count .. " hiệu ứng!"
+    
+    wait(2)
+    FixBtn.Text = "🎨 FIX LAG"
+    FixBtn.BackgroundColor3 = Color3.fromRGB(100, 150, 200)
 end
 
--- Connect button events
-Fix.MouseButton1Click:Connect(function()
-    pcall(function()
-        FixAll()
-    end)
+-- Remove NPC Function
+local function RemoveNPC()
+    StatusLabel.Text = "Đang xóa NPC..."
+    local count = 0
+    
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        pcall(function()
+            if obj:IsA("Model") and obj:FindFirstChild("Humanoid") and obj ~= game.Players.LocalPlayer.Character then
+                obj:Destroy()
+                count = count + 1
+            end
+        end)
+    end
+    
+    RemoveNPCBtn.Text = "✓ DELETED (" .. count .. ")"
+    RemoveNPCBtn.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
+    StatusLabel.Text = "Xóa " .. count .. " NPC!"
+    
+    wait(2)
+    RemoveNPCBtn.Text = "🗑️ XÓA NPC"
+    RemoveNPCBtn.BackgroundColor3 = Color3.fromRGB(150, 100, 100)
+end
+
+-- Remove Purple Effects Function
+local function RemovePurple()
+    StatusLabel.Text = "Đang xóa hiệu ứng tím..."
+    local count = 0
+    
+    for _, v in ipairs(game:GetDescendants()) do
+        pcall(function()
+            local color = nil
+            
+            if v:IsA("ParticleEmitter") and v.Color and v.Color.Keypoints and v.Color.Keypoints[1] then
+                color = v.Color.Keypoints[1].Value
+            elseif v:IsA("Trail") and v.Color and v.Color.Keypoints and v.Color.Keypoints[1] then
+                color = v.Color.Keypoints[1].Value
+            elseif v:IsA("Beam") and v.Color and v.Color.Keypoints and v.Color.Keypoints[1] then
+                color = v.Color.Keypoints[1].Value
+            elseif (v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Sparkles")) and v.Color then
+                color = v.Color
+            end
+            
+            if color then
+                local r, g, b = color.R, color.G, color.B
+                if r > 0.5 and b > 0.5 and g < 0.5 then
+                    v:Destroy()
+                    count = count + 1
+                end
+            end
+        end)
+    end
+    
+    RemovePurpleBtn.Text = "✓ REMOVED (" .. count .. ")"
+    RemovePurpleBtn.BackgroundColor3 = Color3.fromRGB(100, 200, 100)
+    StatusLabel.Text = "Xóa " .. count .. " hiệu ứng tím!"
+    
+    wait(2)
+    RemovePurpleBtn.Text = "💜 XÓA HIỆU ỨNG TÍM"
+    RemovePurpleBtn.BackgroundColor3 = Color3.fromRGB(150, 50, 150)
+end
+
+-- Connect Buttons
+FixBtn.MouseButton1Click:Connect(function()
+    FixLag()
 end)
 
-DeleteNPC.MouseButton1Click:Connect(function()
-    pcall(function()
-        RemoveAllNPC()
-    end)
+RemoveNPCBtn.MouseButton1Click:Connect(function()
+    RemoveNPC()
 end)
 
-DeletePurple.MouseButton1Click:Connect(function()
-    pcall(function()
-        RemoveAllPurpleEffects()
-    end)
+RemovePurpleBtn.MouseButton1Click:Connect(function()
+    RemovePurple()
+end)
+
+-- Toggle Button (bottom right)
+local ToggleBtn = Instance.new("TextButton", ScreenGui)
+ToggleBtn.Name = "ToggleBtn"
+ToggleBtn.Text = "☰"
+ToggleBtn.Size = UDim2.new(0, 50, 0, 50)
+ToggleBtn.Position = UDim2.new(0.5, -25, 0.95, -25)
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(80, 150, 200)
+ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleBtn.Font = Enum.Font.GothamBold
+ToggleBtn.TextSize = 24
+ToggleBtn.BorderSizePixel = 0
+ToggleBtn.Active = true
+ToggleBtn.Draggable = true
+
+local ToggleBtnCorner = Instance.new("UICorner", ToggleBtn)
+ToggleBtnCorner.CornerRadius = UDim.new(0, 12)
+
+local isOpen = true
+ToggleBtn.MouseButton1Click:Connect(function()
+    isOpen = not isOpen
+    MainFrame.Visible = isOpen
 end)
