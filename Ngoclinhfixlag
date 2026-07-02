@@ -78,25 +78,27 @@ spawn(function()
     end
 end)
 
--- FPS and Ping display
+-- FPS and Ping display (also show player count and names)
 local StatsLabel = Instance.new("TextLabel", ScreenGui)
 StatsLabel.Name = "StatsLabel"
-StatsLabel.Size = UDim2.new(0,150,0,44)
-StatsLabel.Position = UDim2.new(1,-160,0,10) -- top-right of screen
+StatsLabel.Size = UDim2.new(0,220,0,120)
+StatsLabel.Position = UDim2.new(1,-230,0,10) -- top-right of screen
 StatsLabel.BackgroundTransparency = 0.6
 StatsLabel.BackgroundColor3 = Color3.fromRGB(20,20,20)
 StatsLabel.TextColor3 = Color3.fromRGB(255,255,255)
 StatsLabel.TextScaled = false
 StatsLabel.Font = Enum.Font.Gotham
-StatsLabel.Text = "FPS: --\nPing: -- ms"
+StatsLabel.Text = "FPS: --\nPing: -- ms\nPlayers: --\n"
 StatsLabel.TextXAlignment = Enum.TextXAlignment.Left
 StatsLabel.TextYAlignment = Enum.TextYAlignment.Top
 StatsLabel.TextStrokeTransparency = 1
 StatsLabel.ZIndex = 11
+StatsLabel.TextWrapped = true
 Instance.new("UICorner", StatsLabel).CornerRadius = UDim.new(0,6)
 
 local RunService = game:GetService("RunService")
 local StatsService = game:GetService("Stats")
+local Players = game:GetService("Players")
 local frameCount = 0
 local acc = 0
 local updateInterval = 0.5
@@ -123,7 +125,25 @@ RunService.Heartbeat:Connect(function(dt)
             end
         end)
 
-        StatsLabel.Text = string.format("FPS: %d\nPing: %s ms", fps, pingText)
+        -- Get players count and names (limit to first 10 names for display)
+        local playerList = Players:GetPlayers()
+        local playerCount = #playerList
+        local names = {}
+        for i, pl in ipairs(playerList) do
+            table.insert(names, pl.Name)
+            if i >= 10 then break end
+        end
+        local namesText = ""
+        if #names > 0 then
+            namesText = table.concat(names, ", ")
+            if playerCount > 10 then
+                namesText = namesText .. ", ..."
+            end
+        else
+            namesText = "(no players)"
+        end
+
+        StatsLabel.Text = string.format("FPS: %d\nPing: %s ms\nPlayers: %d\n%s", fps, pingText, playerCount, namesText)
     end
 end)
 
@@ -136,7 +156,7 @@ Instance.new("UICorner", Dark).CornerRadius = UDim.new(0,15)
 local Title = Instance.new("TextLabel", Main)
 Title.Size = UDim2.new(1,0,0,30)
 Title.BackgroundTransparency = 1
-Title.Text = "𝙉𝙂𝙊𝘾𝙇𝙄𝙉𝙃"
+Title.Text = "FIX LAG VIP"
 Title.TextScaled = true
 Title.Font = Enum.Font.GothamBold
 Title.TextColor3 = Color3.fromRGB(255,255,255)
