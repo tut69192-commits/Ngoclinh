@@ -18,8 +18,8 @@ CreditLabel.TextScaled = false
 CreditLabel.ZIndex = 12
 
 local Main = Instance.new("Frame", ScreenGui)
-Main.Size = UDim2.new(0,250,0,280)
-Main.Position = UDim2.new(0.5,-125,0.5,-140)
+Main.Size = UDim2.new(0,250,0,300)
+Main.Position = UDim2.new(0.5,-125,0.5,-150)
 Main.BackgroundColor3 = Color3.fromRGB(30,30,30)
 Main.BorderSizePixel = 0
 Main.Active = true
@@ -38,26 +38,26 @@ LedContainer.ZIndex = 9
 
 local ledCount = 7
 local leds = {}
-local ledSize = 12 -- radius (px) for LEDs
+local ledSize = 12
 
 local positions = {
-    UDim2.new(0.5, 0, 0, -6),      -- top center (slightly above)
-    UDim2.new(1, 8, 0.15, 0),      -- right-top
-    UDim2.new(1, 8, 0.5, 0),       -- right center
-    UDim2.new(1, 8, 0.85, 0),      -- right-bottom
-    UDim2.new(0.5, 0, 1, 8),       -- bottom center (slightly below)
-    UDim2.new(0, -8, 0.85, 0),     -- left-bottom
-    UDim2.new(0, -8, 0.5, 0),      -- left center
+    UDim2.new(0.5, 0, 0, -6),
+    UDim2.new(1, 8, 0.15, 0),
+    UDim2.new(1, 8, 0.5, 0),
+    UDim2.new(1, 8, 0.85, 0),
+    UDim2.new(0.5, 0, 1, 8),
+    UDim2.new(0, -8, 0.85, 0),
+    UDim2.new(0, -8, 0.5, 0),
 }
 
 local colors = {
-    Color3.fromRGB(255,0,0),    -- red
-    Color3.fromRGB(255,128,0),  -- orange
-    Color3.fromRGB(255,255,0),  -- yellow
-    Color3.fromRGB(0,255,0),    -- green
-    Color3.fromRGB(0,255,255),  -- cyan
-    Color3.fromRGB(0,0,255),    -- blue
-    Color3.fromRGB(128,0,255),  -- purple
+    Color3.fromRGB(255,0,0),
+    Color3.fromRGB(255,128,0),
+    Color3.fromRGB(255,255,0),
+    Color3.fromRGB(0,255,0),
+    Color3.fromRGB(0,255,255),
+    Color3.fromRGB(0,0,255),
+    Color3.fromRGB(128,0,255),
 }
 
 for i = 1, ledCount do
@@ -71,11 +71,10 @@ for i = 1, ledCount do
     led.ZIndex = 10
     led.BorderSizePixel = 0
     local corner = Instance.new("UICorner", led)
-    corner.CornerRadius = UDim.new(1, 0) -- make circular
+    corner.CornerRadius = UDim.new(1, 0)
     table.insert(leds, led)
 end
 
--- Simple cycling animation so the LEDs rotate colors
 spawn(function()
     local offset = 0
     local TweenService = game:GetService("TweenService")
@@ -92,11 +91,11 @@ spawn(function()
     end
 end)
 
--- FPS and Ping display (also show player count and names)
+-- FPS and Ping display
 local StatsLabel = Instance.new("TextLabel", ScreenGui)
 StatsLabel.Name = "StatsLabel"
 StatsLabel.Size = UDim2.new(0,220,0,120)
-StatsLabel.Position = UDim2.new(1,-230,0,10) -- top-right of screen
+StatsLabel.Position = UDim2.new(1,-230,0,10)
 StatsLabel.BackgroundTransparency = 0.6
 StatsLabel.BackgroundColor3 = Color3.fromRGB(20,20,20)
 StatsLabel.TextColor3 = Color3.fromRGB(255,255,255)
@@ -125,10 +124,8 @@ RunService.Heartbeat:Connect(function(dt)
         frameCount = 0
         acc = 0
 
-        -- Try getting ping from Stats service; fallback to N/A
         local pingText = "N/A"
         pcall(function()
-            -- Common path in some clients: Stats.Network.ServerStatsItem["Data Ping"]
             if StatsService and StatsService.Network and StatsService.Network.ServerStatsItem then
                 local item = StatsService.Network.ServerStatsItem["Data Ping"]
                 if item and item.Value then
@@ -139,7 +136,6 @@ RunService.Heartbeat:Connect(function(dt)
             end
         end)
 
-        -- Get players count and names (limit to first 10 names for display)
         local playerList = Players:GetPlayers()
         local playerCount = #playerList
         local names = {}
@@ -161,7 +157,7 @@ RunService.Heartbeat:Connect(function(dt)
     end
 end)
 
--- Dark background KHÔNG click-able
+-- Dark background
 local Dark = Instance.new("Frame", Main)
 Dark.Size = UDim2.new(1,0,1,0)
 Dark.BackgroundColor3 = Color3.new(0,0,0)
@@ -171,8 +167,8 @@ Dark.ZIndex = 1
 Instance.new("UICorner", Dark).CornerRadius = UDim.new(0,15)
 
 local Title = Instance.new("TextLabel", Main)
-Title.Size = UDim2.new(1,0,0,30)
-Title.Position = UDim2.new(0,0,0,5)
+Title.Size = UDim2.new(1,0,0,40)
+Title.Position = UDim2.new(0,0,0,0)
 Title.BackgroundTransparency = 1
 Title.Text = "FIX LAG VIP"
 Title.TextScaled = true
@@ -181,8 +177,8 @@ Title.TextColor3 = Color3.fromRGB(255,255,255)
 Title.ZIndex = 2
 
 local Fix = Instance.new("TextButton", Main)
-Fix.Size = UDim2.new(0.45,0,0,35)
-Fix.Position = UDim2.new(0.05,0,0.18,0)
+Fix.Size = UDim2.new(0.45,-5,0,40)
+Fix.Position = UDim2.new(0.05,0,0.15,0)
 Fix.Text = "𝙉𝙂𝙊𝘾𝙇𝙄𝙉𝙃"
 Fix.Font = Enum.Font.GothamBold
 Fix.TextScaled = true
@@ -193,8 +189,8 @@ Fix.BorderSizePixel = 0
 Instance.new("UICorner", Fix).CornerRadius = UDim.new(0, 8)
 
 local DeleteNPC = Instance.new("TextButton", Main)
-DeleteNPC.Size = UDim2.new(0.45,0,0,35)
-DeleteNPC.Position = UDim2.new(0.5,0,0.18,0)
+DeleteNPC.Size = UDim2.new(0.45,-5,0,40)
+DeleteNPC.Position = UDim2.new(0.55,0,0.15,0)
 DeleteNPC.Text = "xóa npc"
 DeleteNPC.Font = Enum.Font.GothamBold
 DeleteNPC.TextScaled = true
@@ -205,8 +201,8 @@ DeleteNPC.BorderSizePixel = 0
 Instance.new("UICorner", DeleteNPC).CornerRadius = UDim.new(0, 8)
 
 local DeletePurple = Instance.new("TextButton", Main)
-DeletePurple.Size = UDim2.new(0.9,0,0,35)
-DeletePurple.Position = UDim2.new(0.05,0,0.6,0)
+DeletePurple.Size = UDim2.new(0.9,-10,0,40)
+DeletePurple.Position = UDim2.new(0.05,0,0.55,0)
 DeletePurple.Text = "xóa tất cả hiệu ứng tím"
 DeletePurple.Font = Enum.Font.GothamBold
 DeletePurple.TextScaled = true
@@ -217,8 +213,8 @@ DeletePurple.BorderSizePixel = 0
 Instance.new("UICorner", DeletePurple).CornerRadius = UDim.new(0, 8)
 
 local Close = Instance.new("TextButton", Main)
-Close.Size = UDim2.new(0,25,0,25)
-Close.Position = UDim2.new(1,-30,0,5)
+Close.Size = UDim2.new(0,28,0,28)
+Close.Position = UDim2.new(1,-32,0,6)
 Close.Text = "X"
 Close.Font = Enum.Font.GothamBold
 Close.TextScaled = true
@@ -228,7 +224,7 @@ Close.ZIndex = 3
 Close.BorderSizePixel = 0
 Instance.new("UICorner", Close).CornerRadius = UDim.new(0, 5)
 
--- Nút đóng/mở menu - Có thể di chuyển được
+-- Toggle button
 local ToggleContainer = Instance.new("Frame", ScreenGui)
 ToggleContainer.Size = UDim2.new(0,50,0,50)
 ToggleContainer.Position = UDim2.new(0.5,-25,0.95,-25)
@@ -251,7 +247,6 @@ Instance.new("UICorner", Toggle).CornerRadius = UDim.new(0,15)
 
 local isMenuOpen = true
 
--- Click để mở/đóng menu
 local function ToggleMenu()
 	isMenuOpen = not isMenuOpen
 	Main.Visible = isMenuOpen
@@ -259,17 +254,14 @@ end
 
 Toggle.MouseButton1Click:Connect(ToggleMenu)
 
--- Make ToggleContainer follow Main when Main is moved, but still allow moving ToggleContainer independently.
 local offsetX, offsetY = 0, 0
 
--- Wait a short time for AbsolutePosition/Size to be available
 spawn(function()
     wait(0.1)
     offsetX = ToggleContainer.AbsolutePosition.X - Main.AbsolutePosition.X
     offsetY = ToggleContainer.AbsolutePosition.Y - Main.AbsolutePosition.Y
 end)
 
--- When Main moves, update Toggle position to keep the same offset
 Main:GetPropertyChangedSignal("Position"):Connect(function()
     if not Main:IsDescendantOf(game) then return end
     pcall(function()
@@ -277,7 +269,6 @@ Main:GetPropertyChangedSignal("Position"):Connect(function()
     end)
 end)
 
--- When Toggle is moved by the user update the offset to the new relative position
 ToggleContainer:GetPropertyChangedSignal("Position"):Connect(function()
     if not Main:IsDescendantOf(game) then return end
     pcall(function()
@@ -290,7 +281,7 @@ Close.MouseButton1Click:Connect(function()
     ScreenGui:Destroy()
 end)
 
--- Hàm xóa NPC
+-- Remove NPC function
 local function RemoveAllNPC()
 	local function IsNPC(character)
 		if not character:FindFirstChild("Humanoid") then return false end
@@ -312,15 +303,14 @@ local function RemoveAllNPC()
 	DeleteNPC.BackgroundColor3 = Color3.fromRGB(50,100,50)
 end
 
--- Hàm kiểm tra màu tím
+-- Check purple color function
 local function IsPurpleColor(color)
 	if not color then return false end
 	local r, g, b = color.R, color.G, color.B
-	-- Kiểm tra nếu màu tím (R cao, B cao, G thấp)
 	return r > 0.5 and b > 0.5 and g < 0.5
 end
 
--- Hàm xóa tất cả hiệu ứng màu tím
+-- Remove purple effects function
 local function RemoveAllPurpleEffects()
 	local removedCount = 0
 	
@@ -365,7 +355,7 @@ local function RemoveAllPurpleEffects()
 	DeletePurple.BackgroundColor3 = Color3.fromRGB(50,100,50)
 end
 
--- Fix logic - HOÀN THÀNH
+-- Fix all function
 local function FixAll()
     local Lighting = game:GetService("Lighting")
 
@@ -398,7 +388,7 @@ local function FixAll()
     Fix.BackgroundColor3 = Color3.fromRGB(50,100,50)
 end
 
--- Kết nối các button click events
+-- Connect button events
 Fix.MouseButton1Click:Connect(function()
     pcall(function()
         FixAll()
