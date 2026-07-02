@@ -4,8 +4,8 @@ ScreenGui.Parent = game:GetService("CoreGui")
 ScreenGui.ResetOnSpawn = false
 
 local Main = Instance.new("Frame", ScreenGui)
-Main.Size = UDim2.new(0,320,0,420)
-Main.Position = UDim2.new(0.5,-160,0.5,-210)
+Main.Size = UDim2.new(0,320,0,600)
+Main.Position = UDim2.new(0.5,-160,0.5,-300)
 Main.BackgroundColor3 = Color3.fromRGB(30,30,30)
 Main.BorderSizePixel = 0
 Main.Active = true
@@ -52,9 +52,43 @@ PingLabel.TextScaled = true
 PingLabel.Font = Enum.Font.GothamBold
 PingLabel.TextColor3 = Color3.fromRGB(0,200,255)
 
+-- ESP Toggle
+local ESPToggle = Instance.new("TextButton", Main)
+ESPToggle.Size = UDim2.new(0.9,0,0,40)
+ESPToggle.Position = UDim2.new(0.05,0,0.15,0)
+ESPToggle.Text = "📡 ESP: OFF"
+ESPToggle.Font = Enum.Font.GothamBold
+ESPToggle.TextScaled = true
+ESPToggle.BackgroundColor3 = Color3.fromRGB(100,100,100)
+ESPToggle.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", ESPToggle).CornerRadius = UDim.new(0,8)
+
+-- Auto Farm Chest Toggle
+local FarmToggle = Instance.new("TextButton", Main)
+FarmToggle.Size = UDim2.new(0.9,0,0,40)
+FarmToggle.Position = UDim2.new(0.05,0,0.28,0)
+FarmToggle.Text = "🗝️ AUTO FARM: OFF"
+FarmToggle.Font = Enum.Font.GothamBold
+FarmToggle.TextScaled = true
+FarmToggle.BackgroundColor3 = Color3.fromRGB(100,100,100)
+FarmToggle.TextColor3 = Color3.new(1,1,1)
+Instance.new("UICorner", FarmToggle).CornerRadius = UDim.new(0,8)
+
+-- Status Label
+local StatusLabel = Instance.new("TextLabel", Main)
+StatusLabel.Size = UDim2.new(0.9,0,0,50)
+StatusLabel.Position = UDim2.new(0.05,0,0.40,0)
+StatusLabel.BackgroundTransparency = 0.5
+StatusLabel.BackgroundColor3 = Color3.fromRGB(50,50,50)
+StatusLabel.Text = "Trạng thái: Chờ đợi"
+StatusLabel.TextScaled = true
+StatusLabel.Font = Enum.Font.Gotham
+StatusLabel.TextColor3 = Color3.fromRGB(255,255,0)
+Instance.new("UICorner", StatusLabel).CornerRadius = UDim.new(0,8)
+
 local Fix = Instance.new("TextButton", Main)
 Fix.Size = UDim2.new(0.8,0,0,45)
-Fix.Position = UDim2.new(0.1,0,0.75,0)
+Fix.Position = UDim2.new(0.1,0,0.85,0)
 Fix.Text = "FIX LAG"
 Fix.Font = Enum.Font.GothamBold
 Fix.TextScaled = true
@@ -72,17 +106,315 @@ Close.BackgroundColor3 = Color3.fromRGB(220,60,60)
 Close.TextColor3 = Color3.new(1,1,1)
 Instance.new("UICorner", Close)
 
--- Nút đóng/mở menu với hình ảnh
+-- Nút đóng/mở menu với hình ảnh anime
 local Toggle = Instance.new("ImageButton", ScreenGui)
-Toggle.Size = UDim2.new(0,50,0,50)
-Toggle.Position = UDim2.new(0.5,-25,0.95,-25)
+Toggle.Size = UDim2.new(0,60,0,60)
+Toggle.Position = UDim2.new(0.5,-30,0.95,-30)
 Toggle.Image = "rbxassetid://71753856708710"
-Toggle.BackgroundColor3 = Color3.fromRGB(120,80,255)
-Toggle.BackgroundTransparency = 0.2
+Toggle.BackgroundTransparency = 0
 Toggle.ZIndex = 10
+Toggle.BorderSizePixel = 0
+Toggle.Active = true
+Toggle.Draggable = true
 Instance.new("UICorner", Toggle).CornerRadius = UDim.new(0,15)
 
+-- Hiệu ứng hover
+Toggle.MouseEnter:Connect(function()
+	Toggle.Size = UDim2.new(0,65,0,65)
+	Toggle.Position = UDim2.new(0.5,-32.5,0.95,-32.5)
+end)
+
+Toggle.MouseLeave:Connect(function()
+	Toggle.Size = UDim2.new(0,60,0,60)
+	Toggle.Position = UDim2.new(0.5,-30,0.95,-30)
+end)
+
 local isMenuOpen = true
+local isDragging = false
+local dragStart = nil
+local startPos = nil
+
+-- Phát hiện khi bắt đầu drag
+Toggle.MouseButton1Down:Connect(function()
+	isDragging = true
+	dragStart = game:GetService("UserInputService"):GetMouseLocation()
+	startPos = Toggle.Position
+end)
+
+-- Khi thả chuột
+game:GetService("UserInputService").InputEnded:Connect(function(input, gameProcessed)
+	if input.UserInputType == Enum.UserInputType.MouseButton1 then
+		if isDragging then
+			isDragging = false
+		end
+	end
+end)
+
+-- Cập nhật vị trí khi drag
+game:GetService("RunService").RenderStepped:Connect(function()
+	if isDragging and dragStart and startPos then
+		local currentMouse = game:GetService("UserInputService"):GetMouseLocation()
+		local delta = currentMouse - dragStart
+		Toggle.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+	end
+end)
+
+-- Click để mở/đóng menu (nếu không drag)
+Toggle.MouseButton1Click:Connect(function()
+	task.wait(0.1)
+	if not isDragging then
+		isMenuOpen = not isMenuOpen
+		Main.Visible = isMenuOpen
+	end
+end)
+
+-- ==================== ESP SYSTEM ====================
+local ESPEnabled = false
+local ESPFolder = Instance.new("Folder", ScreenGui)
+ESPFolder.Name = "ESPDrawings"
+
+local function CreateESP(player)
+	if player == game.Players.LocalPlayer then return end
+	
+	local espGroup = Instance.new("Folder", ESPFolder)
+	espGroup.Name = player.Name
+	
+	-- Tên người chơi
+	local nameLabel = Instance.new("TextLabel", espGroup)
+	nameLabel.Name = "NameLabel"
+	nameLabel.BackgroundTransparency = 1
+	nameLabel.TextScaled = true
+	nameLabel.Font = Enum.Font.GothamBold
+	nameLabel.TextColor3 = Color3.fromRGB(0, 255, 127)
+	nameLabel.ZIndex = 5
+	
+	-- Khoảng cách
+	local distanceLabel = Instance.new("TextLabel", espGroup)
+	distanceLabel.Name = "DistanceLabel"
+	distanceLabel.BackgroundTransparency = 1
+	distanceLabel.TextScaled = true
+	distanceLabel.Font = Enum.Font.Gotham
+	distanceLabel.TextColor3 = Color3.fromRGB(255, 200, 0)
+	distanceLabel.ZIndex = 5
+	
+	-- Health Bar Background
+	local healthBarBg = Instance.new("Frame", espGroup)
+	healthBarBg.Name = "HealthBarBg"
+	healthBarBg.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+	healthBarBg.BorderSizePixel = 1
+	healthBarBg.BorderColor3 = Color3.fromRGB(255, 255, 255)
+	healthBarBg.ZIndex = 5
+	
+	-- Health Bar
+	local healthBar = Instance.new("Frame", healthBarBg)
+	healthBar.Name = "HealthBar"
+	healthBar.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+	healthBar.BorderSizePixel = 0
+	healthBar.Size = UDim2.new(1, 0, 1, 0)
+	healthBar.ZIndex = 6
+	
+	local humanoid = player.Character:FindFirstChild("Humanoid")
+	
+	local connection
+	connection = game:GetService("RunService").RenderStepped:Connect(function()
+		if not ESPEnabled or not player.Character or not humanoid then
+			espGroup:Destroy()
+			connection:Disconnect()
+			return
+		end
+		
+		local character = player.Character
+		local hrootpart = character:FindFirstChild("HumanoidRootPart")
+		
+		if not hrootpart then return end
+		
+		local camera = workspace.CurrentCamera
+		local screenPos, onScreen = camera:WorldToScreenPoint(hrootpart.Position)
+		
+		if onScreen then
+			local distance = (hrootpart.Position - camera.CFrame.Position).Magnitude
+			local offset = 30
+			
+			nameLabel.Text = player.Name
+			nameLabel.Size = UDim2.new(0, 100, 0, 20)
+			nameLabel.Position = UDim2.new(0, screenPos.X - 50, 0, screenPos.Y - 30)
+			
+			distanceLabel.Text = math.floor(distance) .. " m"
+			distanceLabel.Size = UDim2.new(0, 80, 0, 15)
+			distanceLabel.Position = UDim2.new(0, screenPos.X - 40, 0, screenPos.Y - 10)
+			
+			-- Health Bar
+			local healthPercent = humanoid.Health / humanoid.MaxHealth
+			healthBarBg.Size = UDim2.new(0, 80, 0, 8)
+			healthBarBg.Position = UDim2.new(0, screenPos.X - 40, 0, screenPos.Y + 10)
+			
+			healthBar.Size = UDim2.new(healthPercent, 0, 1, 0)
+			
+			if healthPercent > 0.5 then
+				healthBar.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+			elseif healthPercent > 0.25 then
+				healthBar.BackgroundColor3 = Color3.fromRGB(255, 200, 0)
+			else
+				healthBar.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+			end
+		else
+			nameLabel.Visible = false
+			distanceLabel.Visible = false
+			healthBarBg.Visible = false
+		end
+	end)
+end
+
+local function UpdateESP()
+	if ESPEnabled then
+		for _, player in ipairs(game.Players:GetPlayers()) do
+			if player ~= game.Players.LocalPlayer and player.Character then
+				if not ESPFolder:FindFirstChild(player.Name) then
+					CreateESP(player)
+				end
+			end
+		end
+	end
+end
+
+-- Khi người chơi mới join
+game.Players.PlayerAdded:Connect(function(player)
+	if ESPEnabled then
+		task.wait(0.5)
+		if player.Character then
+			CreateESP(player)
+		end
+	end
+end)
+
+-- Khi người chơi rời đi
+game.Players.PlayerRemoving:Connect(function(player)
+	local espGroup = ESPFolder:FindFirstChild(player.Name)
+	if espGroup then
+		espGroup:Destroy()
+	end
+end)
+
+-- Toggle ESP
+ESPToggle.MouseButton1Click:Connect(function()
+	ESPEnabled = not ESPEnabled
+	
+	if ESPEnabled then
+		ESPToggle.Text = "📡 ESP: ON"
+		ESPToggle.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+		
+		for _, child in ipairs(ESPFolder:GetChildren()) do
+			child:Destroy()
+		end
+		
+		UpdateESP()
+	else
+		ESPToggle.Text = "📡 ESP: OFF"
+		ESPToggle.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+		
+		for _, child in ipairs(ESPFolder:GetChildren()) do
+			child:Destroy()
+		end
+	end
+end)
+
+-- Cập nhật ESP liên tục
+game:GetService("RunService").RenderStepped:Connect(function()
+	if ESPEnabled then
+		UpdateESP()
+	end
+end)
+
+-- ==================== END ESP SYSTEM ====================
+
+-- ==================== AUTO FARM CHEST SYSTEM ====================
+local FarmEnabled = false
+local ChestFolder = Instance.new("Folder", ScreenGui)
+ChestFolder.Name = "ChestTracking"
+
+local function FindNearestChest()
+	local player = game.Players.LocalPlayer
+	if not player or not player.Character then return nil end
+	
+	local playerPos = player.Character:FindFirstChild("HumanoidRootPart")
+	if not playerPos then return nil end
+	
+	local nearestChest = nil
+	local nearestDistance = math.huge
+	
+	-- Tìm rương trong workspace
+	for _, part in ipairs(workspace:FindPartByCFrame(playerPos.CFrame, 500)) do
+		if part and part.Name:match("[Cc]hest") then
+			local distance = (part.Position - playerPos.Position).Magnitude
+			if distance < nearestDistance and distance < 500 then
+				nearestChest = part
+				nearestDistance = distance
+			end
+		end
+	end
+	
+	-- Nếu không tìm thấy, tìm trong descendants
+	if not nearestChest then
+		for _, part in ipairs(workspace:GetDescendants()) do
+			if part:IsA("BasePart") and part.Name:match("[Cc]hest") then
+				local distance = (part.Position - playerPos.Position).Magnitude
+				if distance < nearestDistance and distance < 500 then
+					nearestChest = part
+					nearestDistance = distance
+				end
+			end
+		end
+	end
+	
+	return nearestChest
+end
+
+local function GoToChest()
+	local player = game.Players.LocalPlayer
+	if not player or not player.Character then return end
+	
+	local chest = FindNearestChest()
+	if chest then
+		local hrootpart = player.Character:FindFirstChild("HumanoidRootPart")
+		if hrootpart then
+			hrootpart.CFrame = chest.CFrame + Vector3.new(0, 5, 0)
+			task.wait(0.2)
+			hrootpart.CFrame = chest.CFrame
+			StatusLabel.Text = "Trạng thái: Đi đến rương"
+			StatusLabel.TextColor3 = Color3.fromRGB(0, 255, 150)
+		end
+	else
+		StatusLabel.Text = "Trạng thái: Không tìm thấy rương"
+		StatusLabel.TextColor3 = Color3.fromRGB(255, 100, 0)
+	end
+end
+
+-- Toggle Auto Farm
+FarmToggle.MouseButton1Click:Connect(function()
+	FarmEnabled = not FarmEnabled
+	
+	if FarmEnabled then
+		FarmToggle.Text = "🗝️ AUTO FARM: ON"
+		FarmToggle.BackgroundColor3 = Color3.fromRGB(0, 200, 100)
+		StatusLabel.Text = "Trạng thái: Farm hoạt động"
+		StatusLabel.TextColor3 = Color3.fromRGB(0, 255, 150)
+	else
+		FarmToggle.Text = "🗝️ AUTO FARM: OFF"
+		FarmToggle.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+		StatusLabel.Text = "Trạng thái: Farm dừng"
+		StatusLabel.TextColor3 = Color3.fromRGB(255, 200, 0)
+	end
+end)
+
+-- Farm Loop
+game:GetService("RunService").Heartbeat:Connect(function()
+	if FarmEnabled then
+		GoToChest()
+		task.wait(2)
+	end
+end)
+
+-- ==================== END AUTO FARM CHEST ====================
 
 -- Cập nhật FPS
 local lastTime = tick()
@@ -112,20 +444,6 @@ end)
 
 Close.MouseButton1Click:Connect(function()
     ScreenGui:Destroy()
-end)
-
--- Chức năng đóng/mở menu
-Toggle.MouseButton1Click:Connect(function()
-    isMenuOpen = not isMenuOpen
-    Main.Visible = isMenuOpen
-    
-    if isMenuOpen then
-        Toggle.BackgroundColor3 = Color3.fromRGB(120,80,255)
-        Toggle.BackgroundTransparency = 0.2
-    else
-        Toggle.BackgroundColor3 = Color3.fromRGB(100,100,100)
-        Toggle.BackgroundTransparency = 0.5
-    end
 end)
 
 Fix.MouseButton1Click:Connect(function()
