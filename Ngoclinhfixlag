@@ -1,6 +1,6 @@
 -- Simple Fix Lag Menu Script
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "FixLagMenu"
+ScreenGui.Name = "Script by Ngọc Linh"
 ScreenGui.Parent = game:GetService("CoreGui")
 ScreenGui.ResetOnSpawn = false
 
@@ -28,7 +28,7 @@ local HeaderCorner = Instance.new("UICorner", Header)
 HeaderCorner.CornerRadius = UDim.new(0, 12)
 
 local Title = Instance.new("TextLabel", Header)
-Title.Text = "FIX LAG TOOL"
+Title.Text = "FIX LAG by Ngọc Linh"
 Title.TextSize = 20
 Title.Font = Enum.Font.GothamBold
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
